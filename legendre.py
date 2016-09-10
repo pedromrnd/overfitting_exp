@@ -1,21 +1,16 @@
+import numpy
 from numpy.polynomial import legendre as L
+from numpy.polynomial.polynomial import polyfit
+from numpy.polynomial.polynomial import Polynomial
 from numpy.random import randn
 from scipy import stats
-from scipy import stats
 import timeit
-import Tkinter
 import matplotlib.pyplot as plt
-import random
 
 def normlegInteg(coefs):
 	lOrig = L.Legendre(coefs) 
 	l2integ = (lOrig ** 2).integ()
 	d = ((l2integ(1)-l2integ(-1))/2)**0.5
-	#lnorm = lOrig/d
-	# print(lOrig)
-	# print(lnorm)
-	# print(stats.uniform.expect(lOrig**2,loc=-1, scale=2))
-	# print(stats.uniform.expect(lnorm**2,loc=-1, scale=2))
 	return lOrig/d
 
 
@@ -24,11 +19,37 @@ def normlegExpect(coefs):
 	d = (stats.uniform.expect(lOrig**2,loc=-1, scale=2))**0.5
 	return lOrig/d
 
-leg = normlegInteg(randn(3))
-print(stats.uniform.expect(leg**2,loc=-1, scale=2))
+def genlegpoly(degree):
+	return  normlegInteg(randn(degree+1))
 
-pts = leg.linspace(1000)
-plt.plot(pts[0],pts[1])
+def gendataset(legpoly,variance,n):
+	x = numpy.random.uniform(-1.0,1.0,n)
+	y = legpoly(x) + (variance * randn(n))
+	return (x,y)
+
+
+
+leg = genlegpoly(50)
+#print(stats.uniform.expect(leg**2,loc=-1, scale=2))
+
+leg_pts = leg.linspace(1000)
+plt.plot(leg_pts[0],leg_pts[1])
+
+ds = gendataset(leg,0.1,100)
+plt.plot(ds[0],ds[1],'ro')
+
+#h2 = polyfit(ds[0],ds[1],2)
+h2 = Polynomial.fit(ds[0],ds[1],2,[-1,1])
+h2_pts = h2.linspace(1000)
+plt.plot(h2_pts[0],h2_pts[1],'g')
+
+h10 = Polynomial.fit(ds[0],ds[1],10,[-1,1])
+h10_pts = h10.linspace(1000)
+plt.plot(h10_pts[0],h10_pts[1],'r')
+
+
+print h2
+
 x0, x1, y0, y1 = plt.axis()
 plt.axis((-2.0,2.0,y0,y1))
 plt.show()
