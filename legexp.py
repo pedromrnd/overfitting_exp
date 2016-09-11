@@ -1,12 +1,14 @@
 
+import warnings
 import numpy as np
+warnings.simplefilter('ignore', np.RankWarning)
 from numpy.polynomial import legendre as L
 from numpy.polynomial.polynomial import polyfit
 from numpy.polynomial.polynomial import Polynomial
 from numpy.random import randn
 from scipy import stats
 import matplotlib.pyplot as plt
-import warnings
+
 
 
 
@@ -64,7 +66,7 @@ class LengedreExperiment:
 		return stats.uniform.expect(error**2,loc=-1, scale=2)
 
 	def experiment(self):
-		warnings.simplefilter('ignore', np.RankWarning)
+		
 		self.leg = self.genlegpoly()
 		self.dataset = self.gendataset()
 		self.g2 = Polynomial.fit(self.dataset[0],self.dataset[1], 2, [-1.0,1.0])

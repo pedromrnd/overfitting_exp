@@ -68,17 +68,25 @@ def worker(scenario):
 def stochastic_noise(num_worker_threads, file, nlbound=1, nubound=140, vlbound=0.0, vubound=2.5, vstep=0.05, qf=20, roundsperchunk=1000, nchunks=5):
 	scenarios = []
 	vnum = (vubound - vlbound)/vstep + 1
-	for n in xrange(nlbound, nubound + 1):
-		for variance  in np.linspace(0.0, 2.5, num=vnum):
-			for i in range(nchunks):
+	for i in range(nchunks):
+		for n in xrange(nlbound, nubound + 1):
+			for variance  in np.linspace(0.0, 2.5, num=vnum):
 				scenarios.append((roundsperchunk, qf, variance, n))
 
 
 
 	p = Pool(num_worker_threads)
+	scenarios_total = len(scenarios)
+	print(scenarios_total)
+	scenarios_count = 0
+	t0 = time.time() 
 	with open(file, 'a', 0) as f:
 		for obj in p.imap_unordered(worker, scenarios):
 			#print(obj['eouth10'] - obj['eouth2'])
+			scenarios_count += 1
+			if scenarios_count % 10 == 0:
+				ti = time.time()
+				print("Calculated: %.2f%% Time: %.1fm"%((100.0 *scenarios_count)/scenarios_total, (ti-t0)/60)) 
 			f.write(json.dumps(obj)+"\n")
 
 # def stochastic_noise2():
