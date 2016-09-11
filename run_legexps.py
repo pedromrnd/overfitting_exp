@@ -43,9 +43,9 @@ def runexps(rounds, qf, variance, n):
 
 	for i in xrange(rounds):
 		exp = LengedreExperiment(qf, variance, n)
-		if n == 9 and variance == 0.0:
-			exp.plot()
-			exp.printstats()
+		# if n == 9 and variance == 0.0:
+		# 	exp.plot()
+		# 	exp.printstats()
 		eouth2sum += exp.eoutg2
 		eouth10sum += exp.eoutg10
 
@@ -63,21 +63,22 @@ def runexps(rounds, qf, variance, n):
 			}
 
 def worker(scenario):
-			return runexps(1, *scenario)
+			return runexps(*scenario)
 
-def stochastic_noise(num_worker_threads, file):
-	qf= 20
+def stochastic_noise(num_worker_threads, file, nlbound=1, nubound=140, vlbound=0.0, vubound=2.5, vstep=0.05, qf=20, roundsperchunk=1000, nchunks=5):
 	scenarios = []
-	for n in xrange(1,10):
-		for variance  in np.linspace(0.0, 2.5, num=2):
-			scenarios.append((qf, variance, n))
+	vnum = (vubound - vlbound)/vstep + 1
+	for n in xrange(nlbound, nubound + 1):
+		for variance  in np.linspace(0.0, 2.5, num=vnum):
+			for i in range(nchunks):
+				scenarios.append((roundsperchunk, qf, variance, n))
 
 
 
 	p = Pool(num_worker_threads)
 	with open(file, 'a', 0) as f:
 		for obj in p.imap_unordered(worker, scenarios):
-			print(obj['eouth10'] - obj['eouth2'])
+			#print(obj['eouth10'] - obj['eouth2'])
 			f.write(json.dumps(obj)+"\n")
 
 # def stochastic_noise2():

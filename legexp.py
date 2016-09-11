@@ -6,6 +6,9 @@ from numpy.polynomial.polynomial import Polynomial
 from numpy.random import randn
 from scipy import stats
 import matplotlib.pyplot as plt
+import warnings
+
+
 
 class LengedreExperiment:
 	def __init__(self, qf, variance, n):
@@ -61,10 +64,11 @@ class LengedreExperiment:
 		return stats.uniform.expect(error**2,loc=-1, scale=2)
 
 	def experiment(self):
+		warnings.simplefilter('ignore', np.RankWarning)
 		self.leg = self.genlegpoly()
 		self.dataset = self.gendataset()
-		self.g2 = Polynomial(polyfit(self.dataset[0],self.dataset[1],2))
-		self.g10 = Polynomial(polyfit(self.dataset[0],self.dataset[1],10))
+		self.g2 = Polynomial.fit(self.dataset[0],self.dataset[1], 2, [-1.0,1.0])
+		self.g10 = Polynomial.fit(self.dataset[0],self.dataset[1], 10, [-1.0,1.0])
 		self.eoutg2 = self.mse(self.g2, self.leg)
 		self.eoutg10 = self.mse(self.g10, self.leg)
 
