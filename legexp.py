@@ -1,16 +1,13 @@
 
 import warnings
 import numpy as np
+import math
 warnings.simplefilter('ignore', np.RankWarning)
 from numpy.polynomial import legendre as L
 from numpy.polynomial.polynomial import polyfit
 from numpy.polynomial.polynomial import Polynomial
 from numpy.random import randn
 from scipy import stats
-import matplotlib.pyplot as plt
-
-
-
 
 class LengedreExperiment:
 	def __init__(self, qf, variance, n):
@@ -19,6 +16,15 @@ class LengedreExperiment:
 		self.n = n
 		self.experiment()
 
+	def normlegAl(self, coefs):
+		d = 0.0
+		for i in range(len(coefs)):
+			d += (coefs[i]**2)/(2*i+1)
+		d = np.sqrt(d)
+		coefs = np.divide(coefs,d)
+		#print coefs
+		return L.Legendre(coefs) 
+	
 	def normlegInteg(self, coefs):
 		lOrig = L.Legendre(coefs) 
 		l2integ = (lOrig ** 2).integ()
@@ -31,11 +37,11 @@ class LengedreExperiment:
 		return lOrig/d
 
 	def genlegpoly(self):
-		return  self.normlegInteg(randn(self.qf+1))
+		return  self.normlegAl(randn(self.qf+1))
 
 	def gendataset(self):
 		x = np.random.uniform(-1.0,1.0,self.n)
-		y = self.leg(x) + (self.variance * randn(self.n))
+		y = self.leg(x) + (math.sqrt(self.variance) * randn(self.n))
 		return (x,y)
 
 	def mse(self, prediction, target):
@@ -65,14 +71,22 @@ class LengedreExperiment:
 		error = L.Legendre.cast(prediction) - target
 		return stats.uniform.expect(error**2,loc=-1, scale=2)
 
+	def mse4(self, prediction, target):
+		error = L.Legendre.cast(prediction) - target
+		coefs = error.coef
+		d = 0.0
+		for i in range(len(coefs)):
+			d += (coefs[i]**2)/(2*i+1)
+		return d
+
 	def experiment(self):
 		
 		self.leg = self.genlegpoly()
 		self.dataset = self.gendataset()
 		self.g2 = Polynomial.fit(self.dataset[0],self.dataset[1], 2, [-1.0,1.0])
 		self.g10 = Polynomial.fit(self.dataset[0],self.dataset[1], 10, [-1.0,1.0])
-		self.eoutg2 = self.mse(self.g2, self.leg)
-		self.eoutg10 = self.mse(self.g10, self.leg)
+		self.eoutg2 = self.mse4(self.g2, self.leg)
+		self.eoutg10 = self.mse4(self.g10, self.leg)
 
 	def printstats(self):
 		print("Eout(g2):  %f"%(self.eoutg2))

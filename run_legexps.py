@@ -2,6 +2,7 @@ from legexp import LengedreExperiment
 import numpy as np
 import timeit
 import time
+import math
 import sys
 import json
 from multiprocessing import Process, Queue, Pool
@@ -40,6 +41,8 @@ def runexps(rounds, qf, variance, n):
 	start_time = time.time()
 	eouth2sum = np.float64(0.0)
 	eouth10sum = np.float64(0.0)
+	sqrteouth2sum = np.float64(0.0)
+	sqrteouth10sum = np.float64(0.0)
 
 	for i in xrange(rounds):
 		exp = LengedreExperiment(qf, variance, n)
@@ -48,6 +51,8 @@ def runexps(rounds, qf, variance, n):
 		# 	exp.printstats()
 		eouth2sum += exp.eoutg2
 		eouth10sum += exp.eoutg10
+		sqrteouth2sum += math.sqrt(exp.eoutg2)
+		sqrteouth10sum += math.sqrt(exp.eoutg10)
 
 	end_time = time.time()
 
@@ -58,6 +63,8 @@ def runexps(rounds, qf, variance, n):
 			'rounds': rounds,
 			'eouth2': (eouth2sum/rounds),
 			'eouth10': (eouth10sum/rounds),
+			'sqrteouth2': (sqrteouth2sum/rounds),
+			'sqrteouth10': (sqrteouth10sum/rounds),
 			'start_time': start_time,
 			'end_time': end_time
 			}
@@ -102,7 +109,7 @@ def stochastic_noise(num_worker_threads, file, nlbound=1, nubound=140, vlbound=0
 # print("Runtime 1 cores: %f"%(et2-st2))
 
 st4 = time.time()
-stochastic_noise(4,file)
+stochastic_noise(4,file, nlbound=60, nubound=130)
 et4 = time.time()
 print("Runtime 4 cores: %f"%(et4-st4))  
 # def worker():
