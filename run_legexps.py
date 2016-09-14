@@ -72,7 +72,7 @@ def runexps(rounds, qf, variance, n):
 def worker(scenario):
 			return runexps(*scenario)
 
-def stochastic_noise(num_worker_threads, file, nlbound=1, nubound=140, vlbound=0.0, vubound=2.5, vstep=0.05, qf=20, roundsperchunk=1000, nchunks=5):
+def stochastic_noise(num_worker_threads, file, nlbound=20, nubound=140, vlbound=0.0, vubound=2.5, vstep=0.05, qf=20, roundsperchunk=1000, nchunks=5):
 	scenarios = []
 	vnum = (vubound - vlbound)/vstep + 1
 	for i in range(nchunks):
@@ -96,6 +96,30 @@ def stochastic_noise(num_worker_threads, file, nlbound=1, nubound=140, vlbound=0
 				print("Calculated: %.2f%% Time: %.1fm"%((100.0 *scenarios_count)/scenarios_total, (ti-t0)/60)) 
 			f.write(json.dumps(obj)+"\n")
 
+def deterministic_noise(num_worker_threads, file, nlbound=20, nubound=130, qflbound=0, qfubound=100, variance=0.1 , roundsperchunk=1000, nchunks=5):
+	scenarios = []
+	for i in range(nchunks):
+		for n in xrange(nlbound, nubound + 1):
+			for qf  in xrange(qflbound, qfubound + 1):
+				scenarios.append((roundsperchunk, qf, variance, n))
+
+
+
+	p = Pool(num_worker_threads)
+	scenarios_total = len(scenarios)
+	print(scenarios_total)
+	scenarios_count = 0
+	t0 = time.time() 
+	with open(file, 'a', 0) as f:
+		for obj in p.imap_unordered(worker, scenarios):
+			#print(obj['eouth10'] - obj['eouth2'])
+			scenarios_count += 1
+			if scenarios_count % 10 == 0:
+				ti = time.time()
+				print("Calculated: %.2f%% Time: %.1fm"%((100.0 *scenarios_count)/scenarios_total, (ti-t0)/60)) 
+			f.write(json.dumps(obj)+"\n")
+
+
 # def stochastic_noise2():
 # 	qf= 20
 # 	for n in xrange(1,10):
@@ -109,7 +133,8 @@ def stochastic_noise(num_worker_threads, file, nlbound=1, nubound=140, vlbound=0
 # print("Runtime 1 cores: %f"%(et2-st2))
 
 st4 = time.time()
-stochastic_noise(4,file, nlbound=60, nubound=130)
+#stochastic_noise(4,file, nlbound=60, nubound=140)
+deterministic_noise(4,file, nlbound=60, nubound=130)
 et4 = time.time()
 print("Runtime 4 cores: %f"%(et4-st4))  
 # def worker():
